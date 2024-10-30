@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/project
+    command: ./entrypoints/api.sh
+    depends_on:
+      - postgres
+    tty: true
+    stdin_open: true
+
+  print_tasks:
+    build: .
+    volumes:
+      - .:/project
+    command: ./entrypoints/print_tasks.sh
+    depends_on:
+     - postgres
+    tty: true
+    stdin_open: true
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
+  
