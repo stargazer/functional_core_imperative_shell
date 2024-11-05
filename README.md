@@ -41,7 +41,9 @@ The example of this repository illustrates a small scenario that implements the 
 
 - `/src/shell`: Imperative outer layer that sets up all external frameworks, tools and scripts that interact with the core
   - `/src/shell/db`: Configures the database and defines the data model
-    - `/src/shell/db/session.py`: Configures the database connection and defines the logic for obtaining a database session
+    - `/src/shell/db/sync_session.py`: Configures the database connection and defines the logic for obtaining a synchronous database session
+    - `/src/shell/db/async_session.py`: Configures the database connection and defines the logic for obtaining an asynchronous database session
+
     - `/src/shell/db/models.py`: Defines the database model `Task` using SQLAlchemy.
   - `/src/shell/api`: API application
     - `/src/shell/api/app.py`: Configures the application and defines its endpoints.

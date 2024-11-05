@@ -3,18 +3,18 @@ from sqlalchemy.orm import Session
 from core.models import TaskModel
 from core.operations import TaskCore
 from shell.db.schema import Base, Task
-from shell.db.session import engine, get_db
+from shell.db.sync_session import get_sync_db_session, init_models
 
 
 # Create database tables
-Base.metadata.create_all(bind=engine)      
+init_models()
 
 
 def print_tasks():
 
-    db = next(get_db())
+    session = next(get_sync_db_session())
 
-    task_rows = db.query(Task).all()
+    task_rows = session.query(Task).all()
     task_models = [TaskModel.model_validate(row) for row in task_rows]
     print(task_models)
 
