@@ -26,12 +26,12 @@ class Task(Base):
     )
 
     completed_at = Column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=True,
     )
 
     created_at = Column(
-        DateTime, 
+        DateTime(timezone=True), 
         nullable=False,
         default=func.utcnow(),
     )
