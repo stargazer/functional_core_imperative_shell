@@ -1,11 +1,11 @@
 from collections.abc import AsyncGenerator
-from typing import Any, AsyncIterator
+from typing import Any, AsyncGenerator
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
-from .schema import Base
+from shell.db.schema import Base
 
 
 async_db_engine = create_async_engine("postgresql+asyncpg://username:password@postgres:5432/db")
@@ -21,7 +21,7 @@ async def init_models() -> None:
         await conn.run_sync(Base.metadata.create_all)
 
 
-async def get_async_db_session() -> AsyncIterator[AsyncSession]:
+async def get_async_db_session() -> AsyncGenerator[AsyncSession, None]:
     """
     Yields an async DB session, that can be further injected as dependency in the API routes.
     
@@ -31,5 +31,8 @@ async def get_async_db_session() -> AsyncIterator[AsyncSession]:
     """
 
     async with async_db_session() as session:
-        yield session
-        await session.commit()
+        try:
+            yield session
+            await session.commit()
+        finally:
+            session.close()

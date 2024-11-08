@@ -54,8 +54,19 @@ The example of this repository illustrates a small scenario that implements the 
 
 ## How to run
 
+### Run the API
 ```
-docker-compose up --build
+docker-compose up --build api
 ```
 
 Once the application is up and running, visit `localhost:8000/docs` to view the API documentation.
+
+### Run the `print_tasks` script
+```
+docker-compose up --build print_tasks
+```
+
+### Run the test suite
+```
+docker-compose up --build run_tests
+```

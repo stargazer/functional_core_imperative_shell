@@ -2,27 +2,57 @@ version: '3.8'
 
 services:
 
-  api:
+  sync_api:
     build: .
     ports:
       - "8000:8000"
     volumes:
       - .:/project
-    command: ./entrypoints/api.sh
+    environment: 
+      PYTHONPATH: /project/src:$PYTHONPATH      
+    command: ./entrypoints/sync_api.sh
     depends_on:
       - postgres
     tty: true
     stdin_open: true
 
+  async_api:
+    build: .
+    ports:
+      - "8001:8000"
+    volumes:
+      - .:/project
+    environment: 
+      PYTHONPATH: /project/src:$PYTHONPATH      
+    command: ./entrypoints/async_api.sh
+    depends_on:
+      - postgres
+    tty: true
+    stdin_open: true    
+
   print_tasks:
     build: .
     volumes:
-      - .:/project
+      - .:/project 
+    environment:
+      PYTHONPATH: /project/src:$PYTHONPATH
     command: ./entrypoints/print_tasks.sh
     depends_on:
      - postgres
     tty: true
     stdin_open: true
+
+  run_tests:
+    build: .
+    volumes:
+      - .:/project
+    environment: 
+      PYTHONPATH: /project/src:$PYTHONPATH
+    command: pytest
+    depends_on:
+      - postgres
+    tty: true
+    stdin_open: true  
 
   postgres:
     image: postgres:latest
@@ -30,4 +60,3 @@ services:
       POSTGRES_USER: username
       POSTGRES_PASSWORD: password
       POSTGRES_DB: db
-  

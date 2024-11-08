@@ -8,10 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models import TaskModel
 from core.operations import TaskCore
+from shell.common.deserializers import TaskCreateDeserializer
+from shell.common.serializers import TaskSerializer
 from shell.db.async_session import get_async_db_session, init_models
 from shell.db.schema import Base, Task
-from .deserializers import TaskCreateDeserializer
-from .serializers import TaskSerializer
 
 
 @asynccontextmanager
@@ -24,10 +24,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, None]:
     yield
 
 
-app = FastAPI(title="Task API - Functional Core Example", lifespan=lifespan)
+app = FastAPI(title="Asynchronous Task API - Functional Core Example", lifespan=lifespan)
 
 
-@app.get("/tasks/", response_model=List[TaskSerializer])
+@app.get("/tasks", response_model=List[TaskSerializer])
 async def list_tasks(session: AsyncSession = Depends(get_async_db_session)):
 
     # Retrieve all `Task` instances from the DB
@@ -37,6 +37,7 @@ async def list_tasks(session: AsyncSession = Depends(get_async_db_session)):
 
     # Serialize and return
     return [TaskSerializer.model_validate(task) for task in tasks]
+
 
 @app.post('/tasks', response_model=TaskSerializer)
 async def create_task(task: TaskCreateDeserializer, session: AsyncSession=Depends(get_async_db_session)):
@@ -52,6 +53,7 @@ async def create_task(task: TaskCreateDeserializer, session: AsyncSession=Depend
 
     # Serialize and return
     return TaskSerializer.model_validate(task)
+
 
 @app.put("/tasks/{task_id}/complete", response_model=TaskSerializer)
 async def complete_task(task_id: int, session: AsyncSession = Depends(get_async_db_session)):

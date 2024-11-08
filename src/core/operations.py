@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import List, Optional, Tuple
 
-from .models import TaskModel
+from core.models import TaskModel
 
 
 class TaskCore:

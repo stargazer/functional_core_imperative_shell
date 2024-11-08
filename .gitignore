@@ -1,7 +1,10 @@
 .vscode/
 __pycache__/
+.pytest_cache/
 .Rhistory
 *.swp
 *.bkp
 *.pyc
 *.pyo
+test.db
+.test.db
