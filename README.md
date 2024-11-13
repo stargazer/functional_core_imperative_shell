@@ -1,6 +1,6 @@
 # Functional Core, Imperative Shell Pattern
 
-When working with highly opinionated frameworks that are designed around a rigid layering paradigm like *Model/View/Controller* and its variants, it often happens that parts of the business logic are present on all 3 layers, and even leak to the software's external layers, like the database and the UI.
+When working with highly opinionated frameworks that are designed around a rigid layering paradigm (like *Model/View/Controller* and its variants), it often happens that parts of the business logic are present on all 3 layers, and even leak to the software's external layers, like the database and the UI.
 
 The business logic is a set of rules that should never be violated. If these rules live in multiple different places, they will be enforced differently, evolve differently, get out of sync, and eventually be violated. It's in our best interest to keep the business logic centralized and tight so that it can be understood, tested and allowed to evolve freely. This is the main idea behind *Domain Driven Design (DDD)*.
 
@@ -19,7 +19,7 @@ So in essense the core:
 
 The shell, on the other hand, is a thin layer around the core that:
 - Handles all side effects (database I/O, HTTP, etc)
-- Acts as a mediator between the external world and the core
+- Acts as a mediator between the external world and the core, essentially placing all I/O on the edges of our application
 
 ## Diagram 
 The diagram below illustrates the basic idea.
@@ -36,35 +36,35 @@ The diagram below illustrates the basic idea.
 The example of this repository illustrates a small scenario that implements the pattern. The codebase is structured as follows:
 
 - `/src/core`: Pure functional core with business logic
-  - `/src/core/models.py`: Defines the data model, as a Pydantic model class. In our case it's just the `TaskModel` class.
-  - `/src/core/operations.py`: Defines the functionality of the model.
+  - `/src/core/models.py`: Defines the data model, as a Pydantic model class. In our case it's just the `TaskModel` class
+  - `/src/core/operations.py`: Defines the model's business logic in pure functional code
 
 - `/src/shell`: Imperative outer layer that sets up all external frameworks, tools and scripts that interact with the core
   - `/src/shell/db`: Configures the database and defines the data model
+    - `/src/shell/db/schema.py`: Defines the class `Task` that represents a corresponding database table
     - `/src/shell/db/sync_session.py`: Configures the database connection and defines the logic for obtaining a synchronous database session
     - `/src/shell/db/async_session.py`: Configures the database connection and defines the logic for obtaining an asynchronous database session
 
-    - `/src/shell/db/models.py`: Defines the database model `Task` using SQLAlchemy.
-  - `/src/shell/api`: API application
-    - `/src/shell/api/app.py`: Configures the application and defines its endpoints.
+  - `/src/shell/sync_api`: Synchronous API application
+
+  - `/src/shell/async_api`: Asynchronous API application
+
+  - `/src/shell/common`: Defines a few classes used by both the `sync_api` and the `async_api` apps
+
   - `/src/shell/scripts`: Standalone scripts
-    -  `/src/shell/scripts/print_tasks.py`: Print the existing `Task` items. 
+
+
 - `/entrypoints`: Contains the executables that run  the `shell` components.
 
 
 ## How to run
 
-### Run the API
+### Run the shell apps
 ```
-docker-compose up --build api
+docker-compose up --build
 ```
 
-Once the application is up and running, visit `localhost:8000/docs` to view the API documentation.
-
-### Run the `print_tasks` script
-```
-docker-compose up --build print_tasks
-```
+Once the environment is up and running, visit `localhost:8000/docs` to take a look at the `sync_api` app, and `localhost:8001/docs` to take a look at the `async_api` app.
 
 ### Run the test suite
 ```
