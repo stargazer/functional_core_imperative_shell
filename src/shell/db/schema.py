@@ -10,7 +10,7 @@ Base = declarative_base()
 
 class Task(Base):
     """
-    Defines the `Task` class, which defines the `tasks` database table.
+    Defines the `Task` class, which corresponds to the `tasks` database table.
     """
 
     __tablename__ = "tasks"

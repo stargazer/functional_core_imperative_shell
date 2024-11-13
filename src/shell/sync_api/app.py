@@ -10,8 +10,8 @@ from core.models import TaskModel
 from core.operations import TaskCore
 from shell.common.deserializers import TaskCreateDeserializer
 from shell.common.serializers import TaskSerializer
-from shell.db.sync_session import get_sync_db_session, init_models
 from shell.db.schema import Base, Task
+from shell.db.sync_session import get_sync_db_session, init_models
 
 
 @asynccontextmanager
@@ -68,7 +68,6 @@ def complete_task(task_id: int, session: Session = Depends(get_sync_db_session))
 
     # Update the `Task` object accordingly
     for key, value in completed_task_model.model_dump().items():
-        print(key, value)
         setattr(task, key, value)
 
     # Commit to DB

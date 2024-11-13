@@ -8,6 +8,7 @@ def test_create():
 
     task = TaskCore.create(name='task_name')
 
+    assert isinstance(task, TaskModel)
     assert task.name == 'task_name'
     assert task.completed_at is None
     assert task.created_at is not None

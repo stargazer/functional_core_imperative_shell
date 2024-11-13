@@ -1,3 +1,4 @@
+import json
 import pytest
 import pytest_asyncio
 from contextlib import asynccontextmanager
@@ -5,9 +6,9 @@ from typing import AsyncGenerator, Iterator, Generator, AsyncIterator
 
 from fastapi import Depends
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import create_engine, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import Session, sessionmaker
 
 from core.operations import TaskCore
 from shell.async_api.app import app, get_async_db_session
@@ -26,12 +27,12 @@ AsyncTestSessionFactory = async_sessionmaker(
     bind=testdb_engine,
 )
 
+
 async def get_testdb_session_generator() -> AsyncGenerator[AsyncSession, None]:
     """
     Returns a generator to `AsyncSession` objects.
 
-    This function will override the original async API's `get_async_db_session` function, and
-    will be the dependency that gets injected into the API request handlers.
+    This function will override the original async API's `get_async_db_session` function, and will be the dependency that gets injected into the API request handlers.
     """
 
     async with AsyncTestSessionFactory() as session:
@@ -40,8 +41,8 @@ async def get_testdb_session_generator() -> AsyncGenerator[AsyncSession, None]:
         except:
             await session.rollback()
             raise
-        finally:
-            await session.close()
+        await session.close()
+
    
 @pytest_asyncio.fixture   
 async def session() -> AsyncSession:
@@ -61,6 +62,7 @@ async def cleanup_db() -> None:
     async with testdb_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
+
 
 
 @pytest.fixture
@@ -83,21 +85,55 @@ def client():
 
 
 @pytest_asyncio.fixture
-async def create_test_data(cleanup_db, session):
+async def create_test_data(session):
     """
     Creates the test data
     """
 
-    task_model = TaskCore.create('test_task')
-    task = Task(**task_model.model_dump())
-    session.add(task)
+    task_models = [TaskCore.create('new task') for i in range(10)]
+
+    tasks = [Task(**task_model.model_dump()) for task_model in task_models]  
+    session.add_all(tasks)
     await session.commit()
-    await session.refresh(task)
+
+### Tests
+
+@pytest.mark.asyncio 
+async def test_get_tasks(client, app_deps, cleanup_db, create_test_data):
+    res = client.get('/tasks')
+    data = json.loads(res.content)
+
+    assert res.status_code == 200
+    assert len(data) == 10
+
+
+@pytest.mark.asyncio 
+async def test_create_task(client, app_deps, cleanup_db, session):
+
+    res = client.post('/tasks', json={'name': 'whatever'})
+
+    assert res.status_code == 200
+
+    # Retrieve all `Task` instances from the DB
+    statement = select(Task)
+    result = await session.execute(statement)
+    tasks = result.scalars().all()
+    assert len(tasks) == 1
+    
     await session.close()
 
 
-def test_get_tasks(client, app_deps, create_test_data):
+@pytest.mark.asyncio
+async def test_complete_task(client, app_deps, cleanup_db, session, create_test_data):
 
-    res = client.get('/tasks')
-    print(res.content)
-    assert res.status_code == 200
+    task = await session.execute(select(Task))
+    task = task.scalars().first()
+    task_id = task.id
+    assert task.completed_at is None
+
+    res = client.put('/tasks/{task_id}/complete'.format(task_id=task_id))
+
+    await session.refresh(task)
+    assert task.completed_at is not None
+    
+    await session.close()

@@ -23,11 +23,9 @@ def get_sync_db_session() -> Iterator[Session]:
     Returns an iterator (in fact, a generator) of `Session` objects.
     """
 
-    session_factory = SyncSessionFactory()
-
-    with session_factory as session:
+    with SyncSessionFactory() as session:
         try:
             yield session
-            session.commit()
-        finally:
-            session.close()
+        except:
+            session.rollback()
+            raise

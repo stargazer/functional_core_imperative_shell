@@ -14,8 +14,8 @@ def print_tasks():
 
     session = next(get_sync_db_session())
 
-    task_rows = session.query(Task).all()
-    task_models = [TaskModel.model_validate(row) for row in task_rows]
+    tasks = session.query(Task).all()
+    task_models = [TaskModel.model_validate(row) for row in tasks]
     print(task_models)
 
 

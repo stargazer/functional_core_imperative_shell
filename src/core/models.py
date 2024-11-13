@@ -12,7 +12,8 @@ class TaskModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     # The `id` field should be computed in the `shell` layer, as it's a database concept.
-    # In the `core` layer it should remain optional since it's irrelevant, and in order for us to be able to represent both new and existing models
+    # In the `core` layer it should remain optional since it's irrelevant, 
+    # and in order for us to be able to represent both new and existing models
     id: Optional[int] = None
 
     name: str

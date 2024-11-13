@@ -2,14 +2,14 @@ from collections.abc import AsyncGenerator
 from typing import Any, AsyncGenerator
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from shell.db.schema import Base
 
 
 async_db_engine = create_async_engine("postgresql+asyncpg://username:password@postgres:5432/db")
-async_db_session = async_sessionmaker(autocommit=False, autoflush=False, bind=async_db_engine)
+AsyncSessionFactory = async_sessionmaker(autocommit=False, autoflush=False, bind=async_db_engine)
 
 
 async def init_models() -> None:
@@ -30,9 +30,9 @@ async def get_async_db_session() -> AsyncGenerator[AsyncSession, None]:
     an exception occurs, the context manager rolls back the transaction.
     """
 
-    async with async_db_session() as session:
+    async with AsyncSessionFactory() as session:
         try:
             yield session
-            await session.commit()
-        finally:
-            session.close()
+        except:
+            await session.rollback()
+            raise
